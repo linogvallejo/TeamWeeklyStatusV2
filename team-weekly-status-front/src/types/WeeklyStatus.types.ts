@@ -9,7 +9,7 @@ export interface TaskWithSubtasks {
 }
 export interface WeeklyStatusData {
   id: number;
-  weekStartDate: Date | string;
+  weekStartDate: Date | string | null;
   doneThisWeek: TaskWithSubtasks[];
   planForNextWeek: string[];
   upcomingPTO: (Date | string)[];

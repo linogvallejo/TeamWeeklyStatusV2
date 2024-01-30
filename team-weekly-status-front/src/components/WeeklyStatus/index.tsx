@@ -12,6 +12,8 @@ import { useNavigate } from "react-router-dom";
 import "./styles.css";
 import ReportPreview from "../ReportPreview/index";
 import StaticModal from "../UI/StaticModal";
+import ReactDatePicker from "react-datepicker";
+import "react-datepicker/dist/react-datepicker.css";
 
 interface WeeklyStatusProps {
   role: "TeamLead" | "CurrentWeekReporter" | "Normal";
@@ -36,6 +38,10 @@ const WeeklyStatus: React.FC = () => {
   const [error, setError] = useState<boolean>(false);
 
   const initialStartDate = moment().startOf("week").toDate();
+
+  const [startDatePTO, setStartDatePTO] = useState<Date | null>(null);
+  const [endDatePTO, setEndDatePTO] = useState<Date | null>(null);
+
   const [startDate, setStartDate] = useState(initialStartDate);
 
   const [showModal, setShowModal] = useState(false);
@@ -46,6 +52,8 @@ const WeeklyStatus: React.FC = () => {
   const inTwoMonths = moment().add(2, "months").endOf("isoWeek");
 
   const navigate = useNavigate();
+
+
 
   useEffect(() => {
     // Subscribe to memberId changes
@@ -63,7 +71,7 @@ const WeeklyStatus: React.FC = () => {
     const fetchExistingStatus = async () => {
       const requestData = {
         memberId: memberId,
-        weekStartDate: startDate.toISOString(),
+        weekStartDate: startDate ? startDate.toISOString() : null,
       };
       const response: WeeklyStatusData = await makeApiRequest(
         "/WeeklyStatus/GetByMemberIdAndStartDate",
@@ -144,20 +152,26 @@ const WeeklyStatus: React.FC = () => {
     setPlanForNextWeek(newPlans);
   };
 
-  const handleDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const dateStr = e.target.value;
+  const handleDateChange = (dates: [Date | null, Date | null]) => {
+    const [start, end] = dates;
+    setStartDatePTO(start);
+    setEndDatePTO(end);
 
-    const index = upcomingPTO.indexOf(dateStr);
-
-    if (index !== -1) {
-      // Date already exists, remove it
-      setUpcomingPTO((prev) => prev.filter((d) => d !== dateStr));
+    // If both start and end dates are selected, update the upcomingPTO state
+    if (start && end) {
+      const newDates = [];
+      for (
+        let day = start;
+        day <= end;
+        day = new Date(day.getTime() + 86400000)
+      ) {
+        newDates.push(day.toISOString().split("T")[0]);
+      }
+      setUpcomingPTO(newDates);
     } else {
-      setUpcomingPTO((prev) => [...prev, dateStr]);
+      // Handle the case when dates are cleared
+      setUpcomingPTO([]);
     }
-
-    // Clear the selected date to allow reselection
-    setSelectedDate(null);
   };
 
   const addTask = (
@@ -191,7 +205,7 @@ const WeeklyStatus: React.FC = () => {
 
     const dataToSubmit: WeeklyStatusData = {
       id: existingWeeklyStatus?.id || 0,
-      weekStartDate: startDate,
+      weekStartDate: startDate ? startDate.toString() : null,
       doneThisWeek: doneThisWeek.map((task) => ({
         taskDescription: task.taskDescription,
         subtasks: task.subtasks
@@ -293,6 +307,7 @@ const WeeklyStatus: React.FC = () => {
                         setDoneThisWeek
                       )
                     }
+                    autoComplete="off"
                   />
                   {taskWithSubtasks.subtasks.map((subtask, subtaskIndex) => (
                     <div className="form__group__subtask" key={subtaskIndex}>
@@ -301,6 +316,7 @@ const WeeklyStatus: React.FC = () => {
                         type="text"
                         placeholder={`Subtask ${subtaskIndex + 1}`}
                         value={subtask.subtaskDescription}
+                        autoComplete="off"
                         onChange={(e) =>
                           handleSubtaskChange(
                             taskIndex,
@@ -396,12 +412,14 @@ const WeeklyStatus: React.FC = () => {
         {/* Upcoming PTO */}
         <Form.Group controlId="upcomingPTO" className="form__group">
           <Form.Label className="form__label">Upcoming PTO</Form.Label>
-          <Form.Control
-            type="date"
-            value={selectedDate || ""}
-            min={nextWeekStart.format("YYYY-MM-DD")}
-            max={inTwoMonths.format("YYYY-MM-DD")}
+          <ReactDatePicker
+            selectsRange
+            startDate={startDatePTO}
+            endDate={endDatePTO}
             onChange={handleDateChange}
+            minDate={nextWeekStart.toDate()}
+            maxDate={inTwoMonths.toDate()}
+            isClearable={true}
           />
         </Form.Group>
 
@@ -411,6 +429,8 @@ const WeeklyStatus: React.FC = () => {
             .map((dateStr) => moment(dateStr).format("MMM DD"))
             .join(", ")}
         </div>
+
+
 
         {/* Blockers */}
         <Form.Group controlId="blockers" className="form__group">
