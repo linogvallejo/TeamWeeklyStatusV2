@@ -1,4 +1,5 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -15,13 +16,14 @@ namespace TeamWeeklyStatus.Application.CompositionRoot
         {
             // Register services
             services.AddScoped<IUserService, UserService>();
-            services.AddScoped<IEmailService, EmailService>();
             services.AddScoped<IReminderService, ReminderService>();
             services.AddScoped<IWeeklyStatusService, WeeklyStatusService>();
             services.AddScoped<ITeamMemberService, TeamMemberService>();
             services.AddScoped<IMemberService, MemberService>();
             services.AddScoped<ITeamService, TeamService>();
-
+            services.AddScoped<IJungleAuthenticationService, JungleAuthenticationService>();
+            services.AddScoped<IGoogleAuthenticationService, GoogleAuthenticationService>();
+            services.AddScoped<IUserProvisioningService, UserProvisioningService>();
             return services;
         }
     }
