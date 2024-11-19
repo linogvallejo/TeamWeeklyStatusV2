@@ -28,25 +28,6 @@ builder.Services.AddControllers().AddJsonOptions(options =>
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
-var googleClientId = builder.Configuration["GoogleClientId"];
-var googleClientSecret = builder.Configuration["GoogleClientSecret"];
-
-    builder.Services.AddAuthentication(options =>
-    {
-        options.DefaultScheme = CookieAuthenticationDefaults.AuthenticationScheme;
-        options.DefaultChallengeScheme = GoogleDefaults.AuthenticationScheme;
-    })
-        .AddCookie(options =>
-        {
-            options.LoginPath = "/";
-        })
-        .AddGoogle(options =>
-        {
-            options.ClientId = googleClientId;
-            options.ClientSecret = googleClientSecret;
-        });
-}
-
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.

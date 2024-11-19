@@ -24,9 +24,18 @@ namespace TeamWeeklyStatus.WebApi.Controllers
         [HttpPost("JungleLogin")]
         public async Task<IActionResult> Login([FromBody] JungleLoginDTO loginRequest)
         {
-            var authResult = await _jungleAuthenticationService.AuthenticateAsync(loginRequest.Email, loginRequest.Password);
-            if (authResult == null)
-                return Unauthorized("Invalid credentials");
+            // NOTE: Commenting the right logic, and hardcoding `authResult` for testing and demo purposes:
+
+            //var authResult = await _jungleAuthenticationService.AuthenticateAsync(loginRequest.Email, loginRequest.Password);
+            //if (authResult == null)
+            //    return Unauthorized("Invalid credentials");
+            var authResult = new AuthenticationResult
+            {
+                MemberId = 1,
+                MemberName = "Mango Chango",
+                JwtToken = "1234567890",
+                IsAdmin = true
+            };
 
             // NOTE: Leaving this for testing and demo purposes:
             // loginRequest.Email = "nuevochango@mangochango.com";
